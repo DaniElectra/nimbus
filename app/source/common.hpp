@@ -60,6 +60,8 @@ struct MainStruct {
 	bool buttonWasPressed = false;
 	bool needsReboot = false;
 
+	char errorString[256];
+
 	// startup checking variables
 	s64 firmwareVersion;
 	std::tuple<u8, u8, u8> lumaVersion;
@@ -72,10 +74,12 @@ struct MainStruct {
 	bool externalFirmsAndModulesEnabled;
 };
 
-#define handleResult(action, name)           \
-	rc = action;                               \
-	if (R_FAILED(rc)) {                        \
-		printf("%s error: %08lx\n\n", name, rc); \
+#define handleResult(action, mainStruct, name) \
+	rc = action;                                                                             \
+	if (R_FAILED(rc)) {                                                                      \
+		if (strlen(mainStruct->errorString) == 0)                                            \
+			snprintf(mainStruct->errorString, 256, "%s failed with error: %08lx", name, rc); \
+		printf("%s failed with error: %08lx\n\n", name, rc);                                 \
 	}
 
 // credit to the universal-team for most/all of the code past here

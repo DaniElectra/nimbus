@@ -109,8 +109,14 @@ int main()
 	C2D_Fini();
 	C3D_Fini();
 	gfxExit();
+	actAExit();
+	frdAExit();
+
 	if (mainStruct.needsReboot) {
 		NS_RebootSystem();
 	}
+
+	nsExit();
+
 	return 0;
 }
