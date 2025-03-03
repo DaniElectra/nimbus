@@ -6,7 +6,9 @@
 
 Result actAInit();
 void actAExit();
-Result ACTA_CreateLocalAccount();
+Result ACTA_CreateConsoleAccount();
+Result ACTA_CommitConsoleAccount(u8 account_index);
+Result ACTA_UnloadConsoleAccount();
 Result ACTA_GetAccountInfo(void *out, u32 out_size, u32 block_id, u8 account_index);
 Result ACTA_GetAccountCount(u32 *out);
 Result ACTA_GetFriendLocalAccountId(u8 *out, u32 index);

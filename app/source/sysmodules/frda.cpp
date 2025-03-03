@@ -3,7 +3,7 @@ This file was originally taken from
 https://github.com/devkitPro/libctru/blob/6360f4bdb1ca5f8131ffc92640c1dd16afb63083/libctru/source/services/frd.c
 and modified to:
 - Remove every command, except FRD_SetClientSdkVersion
-- Add FRDA_CreateLocalAccount and FRDA_SetLocalAccountId
+- Add FRDA_CreateLocalAccount and FRDA_LoadLocalAccount
 - Only allow frd:a to be used
 */
 
@@ -51,7 +51,32 @@ Result FRDA_CreateLocalAccount(u8 localAccountId, NascEnvironment nascEnvironmen
 	return (Result)cmdbuf[1];
 }
 
-Result FRDA_GetLocalAccountId(u8 *localAccountId) {
+Result FRDA_IsOnline(bool *state) {
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x02,0,0); // 0x20000
+
+	if (R_FAILED(ret = svcSendSyncRequest(frdHandle))) return ret;
+
+	*state = cmdbuf[2] & 0xFF;
+
+	return (Result)cmdbuf[1];
+}
+
+Result FRDA_Logout() {
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x4, 0, 0);
+
+	if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
+		return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result FRDA_GetMyLocalAccountId(u8 *localAccountId) {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 	cmdbuf[0] = IPC_MakeHeader(0xB, 2, 0);
@@ -64,12 +89,24 @@ Result FRDA_GetLocalAccountId(u8 *localAccountId) {
 	return (Result)cmdbuf[1];
 }
 
-Result FRDA_SetLocalAccountId(u8 localAccountId) {
+Result FRDA_LoadLocalAccount(u8 localAccountId) {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x403, 1, 0);
 	cmdbuf[1] = localAccountId;
+
+	if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
+		return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result FRDA_UnloadLocalAccount() {
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x404, 0, 0);
 
 	if (R_FAILED(ret = svcSendSyncRequest(frdHandle)))
 		return ret;

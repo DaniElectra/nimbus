@@ -74,12 +74,21 @@ struct MainStruct {
 	bool externalFirmsAndModulesEnabled;
 };
 
+#define LOG_NIMBUS_ERROR(mainStruct, fmt) \
+	if (mainStruct->errorString[0] == 0) {                                       \
+		snprintf(mainStruct->errorString, sizeof(mainStruct->errorString), fmt); \
+	}
+
+#define LOGF_NIMBUS_ERROR(mainStruct, fmt, ...) \
+	if (mainStruct->errorString[0] == 0) {                                                    \
+		snprintf(mainStruct->errorString, sizeof(mainStruct->errorString), fmt, __VA_ARGS__); \
+	}
+
 #define handleResult(action, mainStruct, name) \
-	rc = action;                                                                             \
-	if (R_FAILED(rc)) {                                                                      \
-		if (strlen(mainStruct->errorString) == 0)                                            \
-			snprintf(mainStruct->errorString, 256, "%s failed with error: %08lx", name, rc); \
-		printf("%s failed with error: %08lx\n\n", name, rc);                                 \
+	rc = action;                                                                \
+	if (R_FAILED(rc)) {                                                         \
+		LOGF_NIMBUS_ERROR(mainStruct, "%s failed with error: %08lx", name, rc); \
+		printf("%s failed with error: %08lx\n\n", name, rc);                    \
 	}
 
 // credit to the universal-team for most/all of the code past here
@@ -99,6 +108,8 @@ void GetStringSize(float size, float *width, float *height, const char *text);
 
 float GetStringHeight(float size, const char *text);
 void DrawString(float size, u32 color, std::string text, int flags);
+
+void DrawControls();
 
 // this is kinda from citro2d
 CFG_Region GetSystemRegion();

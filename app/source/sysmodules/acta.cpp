@@ -26,11 +26,24 @@ void actAExit() {
  * Under the hood, this creates a local account by incrementing
  * the persistent id and using the current friend account.
  */
-Result ACTA_CreateLocalAccount() {
+Result ACTA_CreateConsoleAccount() {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
 	cmdbuf[0] = IPC_MakeHeader(0x402, 0, 0);
+
+	if (R_FAILED(ret = svcSendSyncRequest(actHandle)))
+		return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result ACTA_CommitConsoleAccount(u8 account_index) {
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x403, 1, 0);
+	cmdbuf[1] = account_index;
 
 	if (R_FAILED(ret = svcSendSyncRequest(actHandle)))
 		return ret;
@@ -45,6 +58,18 @@ Result ACTA_ResetAccount(u8 account_index, bool format_nnid) {
 	cmdbuf[0] = IPC_MakeHeader(0x404, 2, 0);
 	cmdbuf[1] = account_index;
 	cmdbuf[2] = format_nnid;
+
+	if (R_FAILED(ret = svcSendSyncRequest(actHandle)))
+		return ret;
+
+	return (Result)cmdbuf[1];
+}
+
+Result ACTA_UnloadConsoleAccount() {
+	Result ret = 0;
+	u32 *cmdbuf = getThreadCommandBuffer();
+
+	cmdbuf[0] = IPC_MakeHeader(0x407, 0, 0);
 
 	if (R_FAILED(ret = svcSendSyncRequest(actHandle)))
 		return ret;
@@ -94,7 +119,7 @@ Result ACTA_GetPersistentId(u32 *out, u32 index) {
 	return ACTA_GetAccountInfo(out, sizeof(u32), 5, index);
 }
 
-Result ACTA_GetAccountManagerInfo(void *out, u32 out_size, u32 block_id) {
+Result ACTA_GetCommonInfo(void *out, u32 out_size, u32 block_id) {
 	Result ret = 0;
 	u32 *cmdbuf = getThreadCommandBuffer();
 
@@ -111,7 +136,7 @@ Result ACTA_GetAccountManagerInfo(void *out, u32 out_size, u32 block_id) {
 }
 
 Result ACTA_GetAccountCount(u32 *out) {
-	return ACTA_GetAccountManagerInfo(out, sizeof(u32), 1);
+	return ACTA_GetCommonInfo(out, sizeof(u32), 1);
 }
 
 #define ASSERT(action)				\

@@ -46,6 +46,7 @@ int main()
 {
 	// Initialize the libs
 	nsInit();
+	ndmuInit();
 	frdAInit();
 	actAInit();
 	gfxInitDefault();
@@ -70,6 +71,9 @@ int main()
 	
 	mainStruct.buttonSelected = static_cast<NascEnvironment>(serverTypes[0]);
 	mainStruct.currentAccount = mainStruct.buttonSelected;
+
+	// NULL-terminate string
+	mainStruct.errorString[0] = 0;
 
 	// Main loop
 	while (aptMainLoop()) {
@@ -111,6 +115,7 @@ int main()
 	gfxExit();
 	actAExit();
 	frdAExit();
+	ndmuExit();
 
 	if (mainStruct.needsReboot) {
 		NS_RebootSystem();

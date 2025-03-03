@@ -1,6 +1,0 @@
-; Remove account checks
-.org 0x102536
-  b 0x102556
-
-.org 0x101968
-  b 0x101974
