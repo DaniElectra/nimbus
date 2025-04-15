@@ -8,7 +8,7 @@ constexpr Result ResultFPDLocalAccountNotExists = 0xC880C4ED; // FPD::LocalAccou
 Result MainUI::unloadAccount(MainStruct *mainStruct) {
     Result rc = 0;
 
-    handleResult(ACTA_UnloadConsoleAccount(), mainStruct, "Unload act account");
+    handleResult(ACTA_UnloadConsoleAccount(), mainStruct, "Unload ACT account");
     if (R_FAILED(rc)) {
         return rc;
     }
@@ -46,26 +46,26 @@ Result MainUI::switchAccounts(MainStruct *mainStruct, u8 friend_account_id) {
     }
 
     u32 act_account_index = 0;
-    handleResult(ACTA_GetAccountIndexOfFriendAccountId(&act_account_index, friend_account_id), mainStruct, "Get persistent id for creation");
+    handleResult(ACTA_GetAccountIndexOfFriendAccountId(&act_account_index, friend_account_id), mainStruct, "Get ACT account ID of friend account ID");
     if (R_FAILED(rc)) {
         return rc;
     }
 
     if (act_account_index == 0) {
         u32 account_count;
-        handleResult(ACTA_GetAccountCount(&account_count), mainStruct, "Create account count");
+        handleResult(ACTA_GetAccountCount(&account_count), mainStruct, "Get account count");
         if (R_FAILED(rc)) {
             return rc;
         }
 
-        handleResult(ACTA_CreateConsoleAccount(), mainStruct, "Create act account");
+        handleResult(ACTA_CreateConsoleAccount(), mainStruct, "Create ACT account");
         if (R_FAILED(rc)) {
             return rc;
         }
 
         act_account_index = account_count + 1;
 
-        handleResult(ACTA_CommitConsoleAccount(act_account_index), mainStruct, "Commit act account");
+        handleResult(ACTA_CommitConsoleAccount(act_account_index), mainStruct, "Commit ACT account");
         if (R_FAILED(rc)) {
             return rc;
         }
