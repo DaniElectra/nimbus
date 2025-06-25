@@ -1,5 +1,4 @@
 #include "sysmodules/acta.hpp"
-#include "sysmodules/frda.hpp"
 #include "sheet.h"
 #include "sheet_t3x.h"
 #include <stdio.h>
@@ -47,8 +46,8 @@ int main()
 	// Initialize the libs
 	nsInit();
 	ndmuInit();
-	frdAInit();
-	actAInit();
+	frdInit(false);
+	actInit(false);
 	gfxInitDefault();
 	
 	C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
@@ -56,7 +55,7 @@ int main()
 	C2D_Prepare();
 
 	// This version or higher is required creating/swapping friend accounts
-	FRDA_SetClientSdkVersion(0x70000c8);
+	FRD_SetClientSdkVersion(0x70000c8);
 
 	// Create screen
 	C3D_RenderTarget* top_screen = C2D_CreateScreenTarget(GFX_TOP, GFX_LEFT);
@@ -66,10 +65,10 @@ int main()
 	sceneInit();
 
 	// set button selected and current account to nasc environment
-	u32 serverTypes[3] = {};
-	FRDA_GetServerTypes(serverTypes);
+	u8 nascEnvironment, nfsType, nfsNo;
+	FRD_GetServerTypes(&nascEnvironment, &nfsType, &nfsNo);
 	
-	mainStruct.buttonSelected = static_cast<NascEnvironment>(serverTypes[0]);
+	mainStruct.buttonSelected = static_cast<NascEnvironment>(nascEnvironment);
 	mainStruct.currentAccount = mainStruct.buttonSelected;
 
 	// NULL-terminate string
@@ -113,8 +112,8 @@ int main()
 	C2D_Fini();
 	C3D_Fini();
 	gfxExit();
-	actAExit();
-	frdAExit();
+	actExit();
+	frdExit();
 	ndmuExit();
 
 	if (mainStruct.needsReboot) {

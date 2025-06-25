@@ -1,6 +1,5 @@
 #include <format>
 #include "MainUI.hpp"
-#include "../sysmodules/frda.hpp"
 #include "../sysmodules/acta.hpp"
 
 constexpr Result ResultFPDLocalAccountNotExists = 0xC880C4ED; // FPD::LocalAccountNotExists
@@ -23,7 +22,7 @@ Result MainUI::unloadAccount(MainStruct *mainStruct) {
     // If the console was connected to online, wait until it disconnects.
     // I tried doing this through notification events but it didn't seem to work
     while (true) {
-        handleResult(FRDA_IsOnline(&online), mainStruct, "Online check");
+        handleResult(FRD_IsOnline(&online), mainStruct, "Online check");
         if (R_FAILED(rc)) {
             return rc;
         }
@@ -46,14 +45,14 @@ Result MainUI::switchAccounts(MainStruct *mainStruct, u8 friend_account_id) {
     }
 
     u32 act_account_index = 0;
-    handleResult(ACTA_GetAccountIndexOfFriendAccountId(&act_account_index, friend_account_id), mainStruct, "Get ACT account ID of friend account ID");
+    handleResult(ACT_GetAccountIndexOfFriendAccountId(&act_account_index, friend_account_id), mainStruct, "Get ACT account ID of friend account ID");
     if (R_FAILED(rc)) {
         return rc;
     }
 
     if (act_account_index == 0) {
         u32 account_count;
-        handleResult(ACTA_GetAccountCount(&account_count), mainStruct, "Get account count");
+        handleResult(ACT_GetAccountCount(&account_count), mainStruct, "Get account count");
         if (R_FAILED(rc)) {
             return rc;
         }
@@ -80,7 +79,7 @@ Result MainUI::createAccount(MainStruct *mainStruct, u8 friend_account_id, NascE
     Result rc = 0;
 
     // (Re)Create the friend account
-    handleResult(FRDA_CreateLocalAccount(friend_account_id, environmentId, 0, 1), mainStruct, "Create account");
+    handleResult(FRDA_CreateLocalAccount(friend_account_id, static_cast<u8>(environmentId), 0, 1), mainStruct, "Create account");
     if (R_FAILED(rc)) {
         return rc;
     }
@@ -92,7 +91,7 @@ Result MainUI::createAccount(MainStruct *mainStruct, u8 friend_account_id, NascE
     }
 
     // Reset the act account
-    handleResult(ACTA_ResetAccount(friend_account_id, true), mainStruct, "Reset account");
+    handleResult(ACTA_UnbindServerAccount(friend_account_id, true), mainStruct, "Reset account");
 
     return rc;
 }
