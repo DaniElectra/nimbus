@@ -7,8 +7,4 @@
 
 .include "src/account_url.s"
 
-; Prevent unused accounts from being deleted on act start
-.org 0x114f98
-  b 0x114fa8
-
 .close

@@ -52,6 +52,22 @@ void DrawString(float size, u32 color, std::string text, int flags) {
 	C2D_DrawText(&c2d_text, C2D_WithColor | C2D_WordWrap | flags, x, y, 0.5f, size, heightScale, color, screenWidthBottom - x * 2);
 }
 
+void DrawControls() {
+	C2D_Text c2d_text;
+	const char* text = "A: Select";
+	float size = 0.5f;
+	int offset = 6;
+	int bottomOffset = (240 + 2)- offset; // 3ds vertical resolution - offset, but add 2 to the vertical resolution to account for the vertical padding?
+
+	C2D_TextBufClear(textBuf);
+
+	C2D_TextFontParse(&c2d_text, font, textBuf, text);
+	C2D_TextOptimize(&c2d_text);
+
+	C2D_DrawText(&c2d_text, C2D_WithColor | C2D_AlignLeft, offset, bottomOffset - GetStringHeight(size, text), 0.5f, size, size, C2D_Color32(255, 255, 255, 0xFF));
+
+}
+
 // this is kinda from citro2d
 CFG_Region GetSystemRegion() {
 	u8 systemRegion = 0;

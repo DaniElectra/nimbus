@@ -60,6 +60,8 @@ struct MainStruct {
 	bool buttonWasPressed = false;
 	bool needsReboot = false;
 
+	char errorString[256];
+
 	// startup checking variables
 	s64 firmwareVersion;
 	std::tuple<u8, u8, u8> lumaVersion;
@@ -72,10 +74,21 @@ struct MainStruct {
 	bool externalFirmsAndModulesEnabled;
 };
 
-#define handleResult(action, name)           \
-	rc = action;                               \
-	if (R_FAILED(rc)) {                        \
-		printf("%s error: %08lx\n\n", name, rc); \
+#define LOG_NIMBUS_ERROR(mainStruct, fmt) \
+	if (mainStruct->errorString[0] == 0) {                                       \
+		snprintf(mainStruct->errorString, sizeof(mainStruct->errorString), fmt); \
+	}
+
+#define LOGF_NIMBUS_ERROR(mainStruct, fmt, ...) \
+	if (mainStruct->errorString[0] == 0) {                                                    \
+		snprintf(mainStruct->errorString, sizeof(mainStruct->errorString), fmt, __VA_ARGS__); \
+	}
+
+#define handleResult(action, mainStruct, name) \
+	rc = action;                                                                \
+	if (R_FAILED(rc)) {                                                         \
+		LOGF_NIMBUS_ERROR(mainStruct, "%s failed with error: %08lx", name, rc); \
+		printf("%s failed with error: %08lx\n\n", name, rc);                    \
 	}
 
 // credit to the universal-team for most/all of the code past here
@@ -95,6 +108,8 @@ void GetStringSize(float size, float *width, float *height, const char *text);
 
 float GetStringHeight(float size, const char *text);
 void DrawString(float size, u32 color, std::string text, int flags);
+
+void DrawControls();
 
 // this is kinda from citro2d
 CFG_Region GetSystemRegion();

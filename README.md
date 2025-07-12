@@ -14,7 +14,7 @@
 1. Clone the repository recursively using `git clone https://github.com/PretendoNetwork/nimbus --recursive`
     - If you have cloned the repository previously, please run `git pull` and `make clean` while in the nimbus folder to avoid errors and broken files
     - On top of that, if you cloned it before 1.0.2 released, you might also need to run `git submodule update --init --recursive` while in the nimbus folder
-2. Install devkitARM, libctru, [armips](https://github.com/Kingcom/armips), [makerom](https://github.com/3DSGuy/Project_CTR), [bannertool](https://github.com/Steveice10/bannertool) and [flips](https://github.com/Alcaro/Flips)
+2. Install devkitARM, libctru 2.5.0 or later, [armips](https://github.com/Kingcom/armips), [makerom](https://github.com/3DSGuy/Project_CTR), [bannertool](https://github.com/Steveice10/bannertool) and [flips](https://github.com/Alcaro/Flips)
 3. Copy [decompressed `code.bin`](https://github.com/PretendoNetwork/nimbus/blob/main/DECOMPRESSING.md) files from the friends, ssl, miiverse, and act sysmodules in their respective `patches` directories (any Miiverse code.bin works for the miiverse module)
 4. Run `make`
 
