@@ -20,7 +20,7 @@ Result ACT_GetAccountIndexOfFriendAccountId(u32 *index, u8 friend_account_id) {
 		return ret;
 	}
 
-	for (u32 account_index = 1; account_index < account_count; account_index++) {
+	for (u32 account_index = 1; account_index <= account_count; account_index++) {
 		u8 found_friend_account_id = 0;
 
 		if (R_FAILED(ret = ACT_GetFriendLocalAccountId(&found_friend_account_id, account_index))) {
