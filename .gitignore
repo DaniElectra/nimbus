@@ -40,7 +40,8 @@
 *.t3x
 *.bin
 *.ips
-build
+*.3gx
+[Bb]uild
 out
 luma
 target
