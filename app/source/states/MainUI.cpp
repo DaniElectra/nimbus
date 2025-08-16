@@ -96,6 +96,25 @@ Result MainUI::createAccount(MainStruct *mainStruct, u8 friend_account_id, NascE
     return rc;
 }
 
+void MainUI::migrateAccount(MainStruct *mainStruct) {
+    Result rc = 0;
+    u32 pretendo_account_index = 0;
+    // Logs won't override any previous errors
+    handleResult(ACT_GetAccountIndexOfFriendAccountId(&pretendo_account_index, 2), mainStruct, "Get PNID for migration");
+    if (pretendo_account_index != 0) {
+        bool is_commited = false;
+        handleResult(ACT_GetAccountInfo(&is_commited, sizeof(bool), pretendo_account_index, INFO_TYPE_IS_COMMITTED), mainStruct, "Get PNID commit status");
+        if (!is_commited) {
+            handleResult(ACTA_CommitConsoleAccount(pretendo_account_index), mainStruct, "Commit PNID");
+            LOG_NIMBUS_ERROR(mainStruct, "PNID has been migrated!");
+        } else {
+            LOG_NIMBUS_ERROR(mainStruct, "PNID is already migrated!");
+        }
+    } else {
+        LOG_NIMBUS_ERROR(mainStruct, "There is no PNID on this system!");
+    }
+}
+
 bool MainUI::drawUI(MainStruct *mainStruct, C3D_RenderTarget* top_screen, C3D_RenderTarget* bottom_screen, u32 kDown, u32 kHeld, touchPosition touch)
 {
     // if start is pressed, exit to hbl/the home menu depending on if the app was launched from cia or 3dsx
@@ -106,7 +125,7 @@ bool MainUI::drawUI(MainStruct *mainStruct, C3D_RenderTarget* top_screen, C3D_Re
     C2D_DrawSprite(&mainStruct->top);
 
     if (mainStruct->errorString[0] != 0) {
-        DrawString(0.5f, 0xFFFFFFFF, std::format("{}\n\nPress START to reboot the system", mainStruct->errorString), 0);
+        DrawString(0.5f, 0xFFFFFFFF, std::format("{}{}", mainStruct->errorString, mainStruct->needsReboot ? "\n\nPress START to reboot the system" : ""), 0);
     }
 
     C2D_SceneBegin(bottom_screen);
@@ -134,8 +153,8 @@ bool MainUI::drawUI(MainStruct *mainStruct, C3D_RenderTarget* top_screen, C3D_Re
     }
     C2D_DrawSprite(&mainStruct->header);
 
-    // Only allow user interaction when no errors have been triggered
-    if (mainStruct->errorString[0] == 0) {
+    // Only allow user interaction when the system doesn't need a restart
+    if (!mainStruct->needsReboot) {
         // handle touch input
         if (kDown & KEY_TOUCH) {
             if ((touch.px >= 165 && touch.px <= 165 + 104) && (touch.py >= 59 && touch.py <= 59 + 113)) {
@@ -154,9 +173,21 @@ bool MainUI::drawUI(MainStruct *mainStruct, C3D_RenderTarget* top_screen, C3D_Re
         if (kDown & KEY_A) {
             mainStruct->buttonWasPressed = true;
         }
+
+        if (kDown & KEY_B) {
+            migrateAccount(mainStruct);
+            mainStruct->buttonWasPressed = false;
+            return false;
+        }
     }
 
     if (mainStruct->buttonWasPressed) {
+        // Clear any previous logs
+        mainStruct->errorString[0] = 0;
+
+        // If the chosen account is the one we are already logged into, exit without rebooting
+        if (mainStruct->currentAccount == mainStruct->buttonSelected) return true;
+
         u8 accountId = (u8)mainStruct->buttonSelected + 1; // by default set accountId to nasc environment + 1
 
         Result rc = unloadAccount(mainStruct);
