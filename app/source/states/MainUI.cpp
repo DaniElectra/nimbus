@@ -1,8 +1,10 @@
 #include <format>
 #include "MainUI.hpp"
 #include "../sysmodules/acta.hpp"
+#include "../plgldr.h"
 
 constexpr Result ResultFPDLocalAccountNotExists = 0xC880C4ED; // FPD::LocalAccountNotExists
+const char *NIMBUS_PLUGIN = "/luma/plugins/nimbus.3gx";
 
 Result MainUI::unloadAccount(MainStruct *mainStruct) {
     Result rc = 0;
@@ -115,6 +117,49 @@ void MainUI::migrateAccount(MainStruct *mainStruct) {
     }
 }
 
+// Borrowed from https://github.com/azahar-emu/ArticBaseServer/blob/d93be050a4787ed602c603aa14bbaaee066dc1d9/app/sources/main.cpp#L79
+void MainUI::launchPlugin(MainStruct *mainStruct) {
+    Result rc = 0;
+    PluginLoadParameters plgparam = { 0 };
+
+    plgparam.noFlash = false;
+    plgparam.pluginMemoryStrategy = PLG_STRATEGY_NONE;
+    plgparam.persistent = 0;
+    plgparam.lowTitleId = 0;
+    strcpy(plgparam.path, NIMBUS_PLUGIN);
+
+    handleResult(plgLdrInit(), mainStruct, "Initialize plg:ldr");
+    if (R_FAILED(rc)) {
+        return;
+    }
+
+    u32 version;
+    handleResult(PLGLDR__GetVersion(&version), mainStruct, "Get plg:ldr version");
+    if (R_FAILED(rc)) {
+        plgLdrExit();
+        return;
+    }
+
+    if (version < SYSTEM_VERSION(1, 0, 2)) {
+        LOG_NIMBUS_ERROR(mainStruct, "Unsupported plg:ldr version, please update Luma3DS");
+        plgLdrExit();
+        return;
+    }
+
+    handleResult(PLGLDR__SetPluginLoaderState(true), mainStruct, "Enable plugin loader");
+    if (R_FAILED(rc)) {
+        plgLdrExit();
+        return;
+    }
+
+    handleResult(PLGLDR__SetPluginLoadParameters(&plgparam), mainStruct, "Set plugin load params");
+    plgLdrExit();
+
+    // Logs won't override any previous errors
+    LOG_NIMBUS_ERROR(mainStruct, "Nimbus plugin ready! Launch a game from the Home Menu");
+    return;
+}
+
 bool MainUI::drawUI(MainStruct *mainStruct, C3D_RenderTarget* top_screen, C3D_RenderTarget* bottom_screen, u32 kDown, u32 kHeld, touchPosition touch)
 {
     // if start is pressed, exit to hbl/the home menu depending on if the app was launched from cia or 3dsx
@@ -176,6 +221,12 @@ bool MainUI::drawUI(MainStruct *mainStruct, C3D_RenderTarget* top_screen, C3D_Re
 
         if (kDown & KEY_B) {
             migrateAccount(mainStruct);
+            mainStruct->buttonWasPressed = false;
+            return false;
+        }
+
+        if (kDown & KEY_Y) {
+            launchPlugin(mainStruct);
             mainStruct->buttonWasPressed = false;
             return false;
         }
