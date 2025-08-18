@@ -1,6 +1,6 @@
 #include <3ds.h>
 #include "common.hpp"
-#include "csvc.h"
+#include "plgldr.h"
 #include <CTRPluginFramework.hpp>
 #include "HokakuCTR.hpp"
 #include "PatternManager.hpp"
@@ -12,13 +12,19 @@
 #include <vector>
 #include <string.h>
 
+const char *NIMBUS_PLUGIN_MAGIC = "NMBS";
+constexpr u32 NIMBUS_PLUGIN_VERSION = SYSTEM_VERSION(1, 0, 0);
+
 namespace CTRPluginFramework
 {
     u64 titleID;
+    PluginHeader* pluginHeader = nullptr;
 
     // This function executes before the game runs.
     void    PatchProcess(FwkSettings &settings)
     {
+        pluginHeader = settings.Header;
+
         PatternManager pm;
 
         initHokakuCTR(pm);
@@ -112,6 +118,19 @@ namespace CTRPluginFramework
     // This function is called after the game starts executing and CTRPF is ready.
     int     main(void)
     {
+        // If the launcher was used, handle any required cleanup
+        if (memcmp(pluginHeader->config, NIMBUS_PLUGIN_MAGIC, 4) == 0) {
+            if (pluginHeader->config[1] == NIMBUS_PLUGIN_VERSION) {
+                plgLdrInit();
+                bool prevPluginState = pluginHeader->config[2] != 0;
+                PLGLDR__SetPluginLoaderState(prevPluginState);
+                PLGLDR__ClearPluginLoadParameters();
+                plgLdrExit();
+            } else {
+                OSD::Notify("Plugin and launcher version mismatch!");
+            }
+        }
+
         PluginMenu* menu = new PluginMenu("Nimbus Plugin", 1, 0, 0);
         menu->SynchronizeWithFrame(true);
 

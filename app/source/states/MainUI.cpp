@@ -5,6 +5,8 @@
 
 constexpr Result ResultFPDLocalAccountNotExists = 0xC880C4ED; // FPD::LocalAccountNotExists
 const char *NIMBUS_PLUGIN = "/luma/plugins/nimbus.3gx";
+const char *NIMBUS_PLUGIN_MAGIC = "NMBS";
+constexpr u32 NIMBUS_PLUGIN_VERSION = SYSTEM_VERSION(1, 0, 0);
 
 Result MainUI::unloadAccount(MainStruct *mainStruct) {
     Result rc = 0;
@@ -121,12 +123,24 @@ void MainUI::migrateAccount(MainStruct *mainStruct) {
 void MainUI::launchPlugin(MainStruct *mainStruct) {
     Result rc = 0;
     PluginLoadParameters plgparam = { 0 };
+    bool isPlgEnabled = false;
 
+    // Ideally we wouldn't have to set the persistent flag and instead use the builtin
+    // functionality, but the Old 3DS does a reboot before opening a Mode3 game,
+    // erasing any non-persistent configurations we use since this as a generic launcher.
+    //
+    // Instead, we have to mark the parameters as persistent and then disable them
+    // from the plugin itself
     plgparam.noFlash = false;
-    plgparam.pluginMemoryStrategy = PLG_STRATEGY_NONE;
-    plgparam.persistent = 0;
+    plgparam.pluginMemoryStrategy = PLG_STRATEGY_SWAP;
+    plgparam.persistent = 1;
     plgparam.lowTitleId = 0;
     strcpy(plgparam.path, NIMBUS_PLUGIN);
+
+    // Use custom header on config as a way to differentiate between plugin load from launcher
+    // and load by the user (by saving the plugin file as default or on a specific game)
+    strcpy(reinterpret_cast<char*>(plgparam.config), NIMBUS_PLUGIN_MAGIC);
+    plgparam.config[1] = NIMBUS_PLUGIN_VERSION;
 
     handleResult(plgLdrInit(), mainStruct, "Initialize plg:ldr");
     if (R_FAILED(rc)) {
@@ -145,6 +159,14 @@ void MainUI::launchPlugin(MainStruct *mainStruct) {
         plgLdrExit();
         return;
     }
+
+    // Save the previous plugin loader state
+    handleResult(PLGLDR__IsPluginLoaderEnabled(&isPlgEnabled), mainStruct, "Get plugin loader state");
+    if (R_FAILED(rc)) {
+        plgLdrExit();
+        return;
+    }
+    plgparam.config[2] = isPlgEnabled;
 
     handleResult(PLGLDR__SetPluginLoaderState(true), mainStruct, "Enable plugin loader");
     if (R_FAILED(rc)) {
