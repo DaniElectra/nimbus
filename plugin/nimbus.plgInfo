@@ -1,0 +1,18 @@
+Author: PretendoNetwork
+
+Version: # Plugin version
+    Major: 1
+    Minor: 0
+    Revision: 0
+
+Targets: # Low TitleId of games which are compatibles with this plugin (empty for all)
+
+
+Title: nimbus
+
+Summary:  Adds additional networking features and security fixes.
+
+Description:  Adds additional networking features and security fixes.
+
+Compatibility: Any
+MemorySize: 5MiB

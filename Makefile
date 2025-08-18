@@ -12,6 +12,7 @@ CIA_OUT         := cias
 
 LUMA_OUT            := luma/titles
 LUMA_SYSMODULE_OUT  := luma/sysmodules
+LUMA_PLUGIN_OUT     := luma/plugins
 
 FRIENDS_TITLE_ID    := 0004013000003202
 ACT_TITLE_ID        := 0004013000003802
@@ -30,12 +31,13 @@ SSL_OUT             := $(LUMA_SYSMODULE_OUT)/$(SSL_TITLE_ID).ips
 MIIVERSE_OUT_JPN    := $(LUMA_OUT)/$(MIIVERSE_ID_JPN)
 MIIVERSE_OUT_USA    := $(LUMA_OUT)/$(MIIVERSE_ID_USA)
 MIIVERSE_OUT_EUR    := $(LUMA_OUT)/$(MIIVERSE_ID_EUR)
+PLUGIN_OUT          := $(LUMA_PLUGIN_OUT)/nimbus.3gx
 
 all:
 	@rm -rf $(OUT_FOLDER)
 
 # make patches + app folders
-	@mkdir -p $(PATCHES_OUT_FOLDER)/$(LUMA_OUT) $(PATCHES_OUT_FOLDER)/$(LUMA_SYSMODULE_OUT) $(PATCHES_OUT_FOLDER)/$(3DS_OUT)
+	@mkdir -p $(PATCHES_OUT_FOLDER)/$(LUMA_OUT) $(PATCHES_OUT_FOLDER)/$(LUMA_SYSMODULE_OUT) $(PATCHES_OUT_FOLDER)/$(LUMA_PLUGIN_OUT) $(PATCHES_OUT_FOLDER)/$(3DS_OUT)
 	@mkdir -p $(3DSX_OUT_FOLDER) $(CIA_OUT_FOLDER)/$(CIA_OUT) $(COMBINED_OUT_FOLDER)/$(CIA_OUT)
 	@mkdir -p $(PATCHES_OUT_FOLDER)/$(MIIVERSE_OUT_USA) $(PATCHES_OUT_FOLDER)/$(MIIVERSE_OUT_EUR) $(PATCHES_OUT_FOLDER)/$(MIIVERSE_OUT_JPN)
 	
@@ -52,6 +54,12 @@ all:
 	@cp -r patches/miiverse/out/* $(PATCHES_OUT_FOLDER)/$(MIIVERSE_OUT_USA)
 	@cp -r patches/miiverse/out/* $(PATCHES_OUT_FOLDER)/$(MIIVERSE_OUT_EUR)
 	@cp -r patches/miiverse/*.pem $(PATCHES_OUT_FOLDER)/$(3DS_OUT)
+
+# build plugin
+	@$(MAKE) -C plugin
+
+# copy plugin to patches folder
+	@cp -r plugin/plugin.3gx $(PATCHES_OUT_FOLDER)/$(PLUGIN_OUT)
 	
 # copy patches output to all 3 output folders
 	@cp -r $(PATCHES_OUT_FOLDER)/* $(3DSX_OUT_FOLDER)
@@ -75,5 +83,6 @@ all:
 
 clean:
 	@$(MAKE) -C patches clean
+	@$(MAKE) -C plugin clean
 	@$(MAKE) -C app clean
 	@rm -rf $(OUT_FOLDER)
