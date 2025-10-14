@@ -77,10 +77,10 @@ namespace CTRPluginFramework
                 }
 
                 if (playerName.length() == 0) {
-                    playerName = Utils::Format("Player %d", playerCount);
+                    playerName = Utils::Format("Player %u", playerCount);
                 }
 
-                std::string title = Utils::Format("%d. %s", playerCount, playerName.c_str());
+                std::string title = Utils::Format("%u. %s", playerCount, playerName.c_str());
 
                 if (constantID == connectionInfoTable->m_localConnectionInfo.m_publicLocation.m_constantID) {
                     title += " [You]";
@@ -112,9 +112,9 @@ namespace CTRPluginFramework
                 std::string natFiltering = rawNatFiltering <= 2 ? PiaNatFiltering[rawNatFiltering] : Utils::Format("%d", rawNatFiltering);
 
                 std::string note = Utils::Format(
-                    "PID: %d\n"
-                    "CID: %d\n"
-                    "RVCID: %d\n"
+                    "PID: %u\n"
+                    "CID: %u\n"
+                    "RVCID: %u\n"
                     "Friend code: %s\n"
                     "NAT mapping: %s\n"
                     "NAT filtering: %s\n",
