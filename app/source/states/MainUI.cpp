@@ -1,4 +1,5 @@
 #include <format>
+#include <sys/stat.h>
 #include "MainUI.hpp"
 #include "../sysmodules/acta.hpp"
 #include "../plgldr.h"
@@ -110,12 +111,7 @@ void MainUI::migrateAccount(MainStruct *mainStruct) {
         handleResult(ACT_GetAccountInfo(&is_commited, sizeof(bool), pretendo_account_index, INFO_TYPE_IS_COMMITTED), mainStruct, "Get PNID commit status");
         if (!is_commited) {
             handleResult(ACTA_CommitConsoleAccount(pretendo_account_index), mainStruct, "Commit PNID");
-            LOG_NIMBUS_ERROR(mainStruct, "PNID has been migrated!");
-        } else {
-            LOG_NIMBUS_ERROR(mainStruct, "PNID is already migrated!");
         }
-    } else {
-        LOG_NIMBUS_ERROR(mainStruct, "There is no PNID on this system!");
     }
 }
 
@@ -184,6 +180,61 @@ void MainUI::launchPlugin(MainStruct *mainStruct) {
 
 bool MainUI::drawUI(MainStruct *mainStruct, C3D_RenderTarget* top_screen, C3D_RenderTarget* bottom_screen, u32 kDown, u32 kHeld, touchPosition touch)
 {
+    // Check if Nimbus has been updated
+    if (!mainStruct->updateChecked) {
+        mainStruct->updateChecked = true;
+        if (auto* updateCheck = std::fopen(NIMBUS_UPDATE_PATH "/update.txt", "rb")) {
+            std::fclose(updateCheck);
+
+            migrateAccount(mainStruct);
+
+            // If the migration has failed, don't do the update. In such case users need to contact support
+            if (mainStruct->errorString[0] == 0) {
+                mkdir("/luma/sysmodules", 0777);
+                std::remove("/luma/sysmodules/0004013000003202.ips");
+                std::rename(NIMBUS_UPDATE_PATH "/0004013000003202.ips", "/luma/sysmodules/0004013000003202.ips");
+                std::remove("/luma/sysmodules/0004013000003802.ips");
+                std::rename(NIMBUS_UPDATE_PATH "/0004013000003802.ips", "/luma/sysmodules/0004013000003802.ips");
+                std::remove("/luma/sysmodules/0004013000002902.ips");
+                std::rename(NIMBUS_UPDATE_PATH "/0004013000002902.ips", "/luma/sysmodules/0004013000002902.ips");
+                std::remove("/luma/sysmodules/0004013000002E02.ips");
+                std::rename(NIMBUS_UPDATE_PATH "/0004013000002E02.ips", "/luma/sysmodules/0004013000002E02.ips");
+                std::remove("/luma/sysmodules/0004013000002F02.ips");
+                std::rename(NIMBUS_UPDATE_PATH "/0004013000002F02.ips", "/luma/sysmodules/0004013000002F02.ips");
+
+                mkdir("/luma/titles", 0777);
+                mkdir("/luma/titles/000400300000BC02", 0777);
+                std::remove("/luma/titles/000400300000BC02/code.ips");
+                std::rename(NIMBUS_UPDATE_PATH "/000400300000BC02.ips", "/luma/titles/000400300000BC02/code.ips");
+
+                mkdir("/luma/titles/000400300000BD02", 0777);
+                std::remove("/luma/titles/000400300000BD02/code.ips");
+                std::rename(NIMBUS_UPDATE_PATH "/000400300000BD02.ips", "/luma/titles/000400300000BD02/code.ips");
+
+                mkdir("/luma/titles/000400300000BE02", 0777);
+                std::remove("/luma/titles/000400300000BE02/code.ips");
+                std::rename(NIMBUS_UPDATE_PATH "/000400300000BE02.ips", "/luma/titles/000400300000BE02/code.ips");
+
+                mkdir("/luma/plugins", 0777);
+                std::remove("/luma/plugins/nimbus.3gx");
+                std::rename(NIMBUS_UPDATE_PATH "/nimbus.3gx",           "/luma/plugins/nimbus.3gx");
+
+                std::remove("/3ds/juxt-prod.pem");
+                std::rename(NIMBUS_UPDATE_PATH "/juxt-prod.pem",        "/3ds/juxt-prod.pem");
+
+                std::remove(NIMBUS_UPDATE_PATH "/update.txt");
+            }
+
+            // Logs won't override any previous errors
+            LOG_NIMBUS_ERROR(mainStruct, "Nimbus has been updated!");
+
+            aptSetHomeAllowed(false);
+            mainStruct->needsReboot = true;
+            mainStruct->buttonWasPressed = false;
+            return false;
+        }
+    }
+
     // if start is pressed, exit to hbl/the home menu depending on if the app was launched from cia or 3dsx
     if (kDown & KEY_START) return true;
 
@@ -239,12 +290,6 @@ bool MainUI::drawUI(MainStruct *mainStruct, C3D_RenderTarget* top_screen, C3D_Re
 
         if (kDown & KEY_A) {
             mainStruct->buttonWasPressed = true;
-        }
-
-        if (kDown & KEY_B) {
-            migrateAccount(mainStruct);
-            mainStruct->buttonWasPressed = false;
-            return false;
         }
 
         if (kDown & KEY_Y) {

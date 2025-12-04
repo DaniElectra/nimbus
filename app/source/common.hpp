@@ -10,6 +10,8 @@
 #include <algorithm>
 #include <string>
 
+#define NIMBUS_UPDATE_PATH "/3ds/nimbus/update"
+
 enum class NascEnvironment : u8 {
 	NASC_ENV_Prod = 0, // nintendo
 	NASC_ENV_Test = 1, // pretendo
@@ -59,6 +61,7 @@ struct MainStruct {
 
 	bool buttonWasPressed = false;
 	bool needsReboot = false;
+	bool updateChecked = false;
 
 	char errorString[256];
 
