@@ -190,6 +190,7 @@ bool MainUI::drawUI(MainStruct *mainStruct, C3D_RenderTarget* top_screen, C3D_Re
 
             // If the migration has failed, don't do the update. In such case users need to contact support
             if (mainStruct->errorString[0] == 0) {
+                mkdir("/luma", 0777);
                 mkdir("/luma/sysmodules", 0777);
                 std::remove("/luma/sysmodules/0004013000003202.ips");
                 std::rename(NIMBUS_UPDATE_PATH "/0004013000003202.ips", "/luma/sysmodules/0004013000003202.ips");
